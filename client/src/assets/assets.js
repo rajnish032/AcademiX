@@ -42,9 +42,12 @@ import profile_img from './profile_img.png'
 import profile_img2 from './profile_img2.png'
 import profile_img3 from './profile_img3.png'
 import lesson_icon from './lesson_icon.svg'
+import newlogo from './newlogo.png'
+
 
 
 export const assets = {
+    newlogo,
     logo,
     search_icon,
     sketch,
