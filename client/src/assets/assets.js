@@ -1,4 +1,5 @@
 import logo from './logo.svg'
+import academix_logo from "./academix.png"
 import logo_dark from './logo_dark.svg'
 import search_icon from './search_icon.svg'
 import cross_icon from './cross_icon.svg'
@@ -48,6 +49,7 @@ import newlogo from './newlogo.png'
 
 export const assets = {
     newlogo,
+    academix_logo,
     logo,
     search_icon,
     sketch,
