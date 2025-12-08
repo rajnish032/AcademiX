@@ -1,9 +1,15 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import uniqid from 'uniqid';
 import Quill from 'quill';
 import { assets } from '../../assets/assets';
+import { AppContext } from '../../context/AppContext';
+import { toast } from 'react-toastify';
+import axios from 'axios';
 
 const AddCourse = () => {
+
+
+  const { backendUrl, getToken } = useContext(AppContext)
   const quillRef = useRef(null);
   const editorRef = useRef(null);
 
@@ -110,9 +116,43 @@ const AddCourse = () => {
   };
 
   const handleSubmit = async e => {
-    e.preventDefault();
-    // TODO: collect all data and send to backend
-    // console.log({ courseTitle, coursePrice, discount, image, chapters });
+    try {
+      e.preventDefault();
+      if(!image){
+        toast.error('Thumbnail not selected')
+      }
+
+      const courseData = {
+        courseTitle,
+        courseDescription : quillRef.current.root.innerHTML,
+        coursePrice: Number(coursePrice),
+        discount: Number(discount),
+        courseContent: chapters,
+
+      }
+      const formData = new FormData()
+      formData.append('courseData', JSON.stringify(courseData))
+      formData.append('image' , image)
+
+      const token = await getToken()
+      const {data} = await axios.post( backendUrl + '/api/educator/add-course',
+        formData, { headers: { Authorization: `Bearer ${token}`}}
+      )
+      if(data.success){
+        toast.success(data.message)
+        setCourseTitle('')
+        setCoursePrice(0)
+        setDiscount(0)
+        setImage(null)
+        setChapters([])
+        quillRef.current.root.innerHTML = ''
+      }else{
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    }
+    
   };
 
   useEffect(() => {
@@ -124,253 +164,287 @@ const AddCourse = () => {
   }, []);
 
   return (
-    <div className="h-screen overflow-scroll flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0">
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col gap-4 max-w-md w-full text-gray-500"
-      >
+  <div className="h-screen overflow-scroll flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0 bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100">
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col gap-4 max-w-md w-full text-slate-600 dark:text-slate-200 
+                 bg-white/90 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 
+                 rounded-xl shadow-lg shadow-slate-900/10 p-5"
+    >
+      <div className="flex flex-col gap-1">
+        <p className="text-sm font-medium">Course Title</p>
+        <input
+          onChange={e => setCourseTitle(e.target.value)}
+          value={courseTitle}
+          type="text"
+          placeholder="Type Here"
+          required
+          className="outline-none md:py-2.5 py-2 px-3 rounded-lg border border-slate-300 dark:border-slate-700 
+                     bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 
+                     focus:ring-2 focus:ring-indigo-500/70 focus:border-indigo-500/70 transition"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <p className="text-sm font-medium">Course Description</p>
+        <div
+          ref={editorRef}
+          className="border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800"
+        ></div>
+      </div>
+
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex flex-col gap-1">
-          <p>Course Title</p>
+          <p className="text-sm font-medium">Course Price</p>
           <input
-            onChange={e => setCourseTitle(e.target.value)}
-            value={courseTitle}
-            type="text"
-            placeholder="Type Here"
-            required
-            className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500"
-          />
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <p>Course Description</p>
-          <div ref={editorRef}></div>
-        </div>
-
-        <div className="flex items-center justify-between flex-wrap">
-          <div className="flex flex-col gap-1">
-            <p>Course Price</p>
-            <input
-              onChange={e => setCoursePrice(e.target.value)}
-              value={coursePrice}
-              type="number"
-              placeholder="0"
-              required
-              className="outline-none md:py-2.5 py-2 w-28 px-3 rounded border border-gray-500"
-            />
-          </div>
-
-          <div className="flex md:flex-row flex-col items-center gap-3">
-            <p>Course Thumbnail</p>
-            <label htmlFor="thumbnailImage" className="flex items-center gap-3">
-              <img
-                src={assets.file_upload_icon}
-                alt=""
-                className="p-3 bg-blue-500 rounded"
-              />
-              <input
-                type="file"
-                id="thumbnailImage"
-                onChange={e => setImage(e.target.files[0])}
-                accept="image/*"
-                hidden
-              />
-              {image && (
-                <img
-                  className="max-h-10"
-                  src={URL.createObjectURL(image)}
-                  alt="Course thumbnail"
-                />
-              )}
-            </label>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <p>Discount %</p>
-          <input
-            onChange={e => setDiscount(e.target.value)}
-            value={discount}
+            onChange={e => setCoursePrice(e.target.value)}
+            value={coursePrice}
             type="number"
             placeholder="0"
-            min={0}
-            max={100}
             required
-            className="outline-none md:py-2.5 py-2 w-28 px-3 rounded border border-gray-500"
+            className="outline-none md:py-2.5 py-2 w-28 px-3 rounded-lg border border-slate-300 dark:border-slate-700 
+                       bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 
+                       focus:ring-2 focus:ring-indigo-500/70 focus:border-indigo-500/70 transition"
           />
         </div>
 
-        {/* Chapters & Lectures */}
-        <div>
-          {chapters.map((chapter, chapterIndex) => (
-            <div key={chapter.chapterId} className="bg-white border rounded-lg mb-4">
-              <div className="flex justify-between items-center p-4 border-b">
-                <div className="flex items-center">
-                  <img
-                    onClick={() => handleChapter('toggle', chapter.chapterId)}
-                    src={assets.dropdown_icon}
-                    width={14}
-                    alt=""
-                    className={`mr-2 cursor-pointer transition-all ${
-                      chapter.collapsed && '-rotate-90'
-                    }`}
-                  />
-                  <span className="font-semibold">
-                    {chapterIndex + 1} {chapter.chapterTitle}
-                  </span>
-                </div>
-                <span className="text-gray-500">
-                  {chapter.chapterContent.length} Lectures
-                </span>
-                <img
-                  onClick={() => handleChapter('remove', chapter.chapterId)}
-                  src={assets.cross_icon}
-                  alt=""
-                  className="cursor-pointer"
-                />
-              </div>
+        <div className="flex md:flex-row flex-col items-center gap-3">
+          <p className="text-sm font-medium">Course Thumbnail</p>
+          <label htmlFor="thumbnailImage" className="flex items-center gap-3 cursor-pointer">
+            <img
+              src={assets.file_upload_icon}
+              alt=""
+              className="p-3 bg-indigo-500 hover:bg-indigo-600 transition rounded-lg shadow-md shadow-indigo-500/30"
+            />
+            <input
+              type="file"
+              id="thumbnailImage"
+              onChange={e => setImage(e.target.files[0])}
+              accept="image/*"
+              hidden
+            />
+            {image && (
+              <img
+                className="max-h-10 rounded-lg border border-slate-300 dark:border-slate-600"
+                src={URL.createObjectURL(image)}
+                alt="Course thumbnail"
+              />
+            )}
+          </label>
+        </div>
+      </div>
 
-              {!chapter.collapsed && (
-                <div className="p-4">
-                  {chapter.chapterContent.map((lecture, lectureIndex) => (
-                    <div
-                      key={lecture.lectureId ?? lectureIndex}
-                      className="flex justify-between items-center mb-2"
-                    >
-                      <span>
-                        {lectureIndex + 1} {lecture.lectureTitle} -{' '}
-                        {lecture.lectureDuration} mins -{' '}
-                        <a
-                          href={lecture.lectureUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-blue-500"
-                        >
-                          Link
-                        </a>{' '}
-                        - {lecture.isPreviewFree ? 'Free Preview' : 'Paid'}
-                      </span>
-                      <img
-                        src={assets.cross_icon}
-                        alt=""
-                        onClick={() =>
-                          handleLecture('remove', chapter.chapterId, lectureIndex)
-                        }
-                        className="cursor-pointer"
-                      />
-                    </div>
-                  ))}
+      <div className="flex flex-col gap-1">
+        <p className="text-sm font-medium">Discount %</p>
+        <input
+          onChange={e => setDiscount(e.target.value)}
+          value={discount}
+          type="number"
+          placeholder="0"
+          min={0}
+          max={100}
+          required
+          className="outline-none md:py-2.5 py-2 w-28 px-3 rounded-lg border border-slate-300 dark:border-slate-700 
+                     bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 
+                     focus:ring-2 focus:ring-indigo-500/70 focus:border-indigo-500/70 transition"
+        />
+      </div>
 
-                  <div
-                    className="inline-flex bg-gray-100 p-2 rounded cursor-pointer mt-2"
-                    onClick={() => handleLecture('add', chapter.chapterId)}
-                  >
-                    + Add Lectures
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-
+      {/* Chapters & Lectures */}
+      <div>
+        {chapters.map((chapter, chapterIndex) => (
           <div
-            className="flex justify-center items-center bg-blue-100 p-2 rounded-lg cursor-pointer"
-            onClick={() => handleChapter('add')}
+            key={chapter.chapterId}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 
+                       rounded-lg mb-4 shadow-sm shadow-slate-900/10"
           >
-            + Add Chapter
-          </div>
-
-          {showPopup && (
-            <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
-              <div className="bg-white text-gray-700 p-4 rounded relative w-full max-w-80">
-                <h2 className="text-lg font-semibold mb-4">Add Lectures</h2>
-
-                <div className="mb-2">
-                  <p>Lecture Title</p>
-                  <input
-                    type="text"
-                    className="mt-1 block w-full border rounded py-1 px-2"
-                    value={lectureDetails.lectureTitle}
-                    onChange={e =>
-                      setLectureDetails({
-                        ...lectureDetails,
-                        lectureTitle: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-
-                <div className="mb-2">
-                  <p>Duration (minutes)</p>
-                  <input
-                    type="number"
-                    className="mt-1 block w-full border rounded py-1 px-2"
-                    value={lectureDetails.lectureDuration}
-                    onChange={e =>
-                      setLectureDetails({
-                        ...lectureDetails,
-                        lectureDuration: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-
-                <div className="mb-2">
-                  <p>Lecture URL</p>
-                  <input
-                    type="text"
-                    className="mt-1 block w-full border rounded py-1 px-2"
-                    value={lectureDetails.lectureUrl}
-                    onChange={e =>
-                      setLectureDetails({
-                        ...lectureDetails,
-                        lectureUrl: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-
-                <div className="mb-4 flex items-center gap-2">
-                  <p>Is Preview Free?</p>
-                  <input
-                    type="checkbox"
-                    className="mt-1"
-                    checked={lectureDetails.isPreviewFree}
-                    onChange={e =>
-                      setLectureDetails({
-                        ...lectureDetails,
-                        isPreviewFree: e.target.checked,
-                      })
-                    }
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  className="w-full bg-blue-400 text-white px-4 py-2 rounded"
-                  onClick={addLecture}
-                >
-                  Add
-                </button>
-
+            <div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-800">
+              <div className="flex items-center">
                 <img
-                  onClick={() => setShowPopup(false)}
-                  src={assets.cross_icon}
-                  className="absolute top-4 right-4 w-4 cursor-pointer"
+                  onClick={() => handleChapter('toggle', chapter.chapterId)}
+                  src={assets.dropdown_icon}
+                  width={14}
                   alt=""
+                  className={`mr-2 cursor-pointer transition-transform ${
+                    chapter.collapsed && '-rotate-90'
+                  }`}
                 />
+                <span className="font-semibold text-sm md:text-base">
+                  {chapterIndex + 1} {chapter.chapterTitle}
+                </span>
               </div>
+              <span className="text-xs md:text-sm text-slate-500 dark:text-slate-400">
+                {chapter.chapterContent.length} Lectures
+              </span>
+              <img
+                onClick={() => handleChapter('remove', chapter.chapterId)}
+                src={assets.cross_icon}
+                alt=""
+                className="cursor-pointer hover:opacity-80 transition"
+              />
             </div>
-          )}
+
+            {!chapter.collapsed && (
+              <div className="p-4">
+                {chapter.chapterContent.map((lecture, lectureIndex) => (
+                  <div
+                    key={lecture.lectureId ?? lectureIndex}
+                    className="flex justify-between items-center mb-2 text-sm"
+                  >
+                    <span className="text-slate-700 dark:text-slate-200">
+                      {lectureIndex + 1} {lecture.lectureTitle} -{' '}
+                      {lecture.lectureDuration} mins -{' '}
+                      <a
+                        href={lecture.lectureUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-indigo-500 hover:text-indigo-400 underline-offset-2 hover:underline"
+                      >
+                        Link
+                      </a>{' '}
+                      -{' '}
+                      <span className="font-medium">
+                        {lecture.isPreviewFree ? 'Free Preview' : 'Paid'}
+                      </span>
+                    </span>
+                    <img
+                      src={assets.cross_icon}
+                      alt=""
+                      onClick={() =>
+                        handleLecture('remove', chapter.chapterId, lectureIndex)
+                      }
+                      className="cursor-pointer hover:opacity-80 transition"
+                    />
+                  </div>
+                ))}
+
+                <div
+                  className="inline-flex bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 
+                             px-3 py-1.5 rounded cursor-pointer mt-2 text-sm hover:bg-slate-200 
+                             dark:hover:bg-slate-700 transition"
+                  onClick={() => handleLecture('add', chapter.chapterId)}
+                >
+                  + Add Lectures
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+
+        <div
+          className="flex justify-center items-center bg-indigo-50 dark:bg-indigo-500/10 
+                     text-indigo-700 dark:text-indigo-200 
+                     px-3 py-2 rounded-lg cursor-pointer hover:bg-indigo-100 
+                     dark:hover:bg-indigo-500/20 transition text-sm font-medium"
+          onClick={() => handleChapter('add')}
+        >
+          + Add Chapter
         </div>
 
-        <button
-          type="submit"
-          className="bg-black text-white w-max py-2.5 px-8 rounded my-4"
-        >
-          ADD
-        </button>
-      </form>
-    </div>
-  );
+        {showPopup && (
+          <div className="fixed inset-0 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm z-50">
+            <div className="bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 
+                            p-4 rounded-lg relative w-full max-w-80 shadow-xl shadow-slate-900/40">
+              <h2 className="text-lg font-semibold mb-4">Add Lectures</h2>
+
+              <div className="mb-2">
+                <p className="text-sm">Lecture Title</p>
+                <input
+                  type="text"
+                  className="mt-1 block w-full border border-slate-300 dark:border-slate-700 
+                             rounded py-1 px-2 bg-white dark:bg-slate-800 
+                             text-slate-800 dark:text-slate-100 outline-none 
+                             focus:ring-2 focus:ring-indigo-500/70 focus:border-indigo-500/70 transition"
+                  value={lectureDetails.lectureTitle}
+                  onChange={e =>
+                    setLectureDetails({
+                      ...lectureDetails,
+                      lectureTitle: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="mb-2">
+                <p className="text-sm">Duration (minutes)</p>
+                <input
+                  type="number"
+                  className="mt-1 block w-full border border-slate-300 dark:border-slate-700 
+                             rounded py-1 px-2 bg-white dark:bg-slate-800 
+                             text-slate-800 dark:text-slate-100 outline-none 
+                             focus:ring-2 focus:ring-indigo-500/70 focus:border-indigo-500/70 transition"
+                  value={lectureDetails.lectureDuration}
+                  onChange={e =>
+                    setLectureDetails({
+                      ...lectureDetails,
+                      lectureDuration: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="mb-2">
+                <p className="text-sm">Lecture URL</p>
+                <input
+                  type="text"
+                  className="mt-1 block w-full border border-slate-300 dark:border-slate-700 
+                             rounded py-1 px-2 bg-white dark:bg-slate-800 
+                             text-slate-800 dark:text-slate-100 outline-none 
+                             focus:ring-2 focus:ring-indigo-500/70 focus:border-indigo-500/70 transition"
+                  value={lectureDetails.lectureUrl}
+                  onChange={e =>
+                    setLectureDetails({
+                      ...lectureDetails,
+                      lectureUrl: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="mb-4 flex items-center gap-2">
+                <p className="text-sm">Is Preview Free?</p>
+                <input
+                  type="checkbox"
+                  className="mt-1 accent-indigo-500"
+                  checked={lectureDetails.isPreviewFree}
+                  onChange={e =>
+                    setLectureDetails({
+                      ...lectureDetails,
+                      isPreviewFree: e.target.checked,
+                    })
+                  }
+                />
+              </div>
+
+              <button
+                type="button"
+                className="w-full bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 
+                           rounded-md font-medium transition"
+                onClick={addLecture}
+              >
+                Add
+              </button>
+
+              <img
+                onClick={() => setShowPopup(false)}
+                src={assets.cross_icon}
+                className="absolute top-4 right-4 w-4 cursor-pointer hover:opacity-80 transition"
+                alt=""
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <button
+        type="submit"
+        className="bg-indigo-600 hover:bg-indigo-700 transition text-white w-max py-2.5 px-8 rounded-lg my-4 shadow-md shadow-indigo-500/30"
+      >
+        ADD
+      </button>
+    </form>
+  </div>
+);
 };
 
 export default AddCourse;
