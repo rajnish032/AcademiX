@@ -1,5 +1,5 @@
 import express from 'express';
-import mongoose, { mongo } from 'mongoose';
+import mongoose from 'mongoose';
 
 const userSChema = new mongoose.Schema(
     {
