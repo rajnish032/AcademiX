@@ -35,7 +35,7 @@ const chapterSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    chaterOrder: {
+    chapterOrder: {
         type:Number,
         required: true
     },

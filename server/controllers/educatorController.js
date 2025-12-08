@@ -18,7 +18,7 @@ export const updateRoleToEducator = async (req, res) => {
       },
     });
 
-    return res.json({ message: "you can publish a course now" });
+    return res.json({ succes: true, message: "you can publish a course now" });
   } catch (error) {
     return res.status(500).json({
       error: error.message || "Something went wrong",
