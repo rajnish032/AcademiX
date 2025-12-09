@@ -78,6 +78,16 @@ const Player = () => {
     }
   };
 
+  const getYouTubeId = (url) => {
+  try {
+    const parsedUrl = new URL(url);
+    return parsedUrl.searchParams.get("v");
+  } catch {
+    return null;
+  }
+};
+
+
   const getCourseProgress = async () => {
     try {
       const token = await getToken();
@@ -235,9 +245,10 @@ const Player = () => {
           {playerData ? (
             <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden backdrop-blur-md shadow-[0_0_30px_rgba(0,0,0,0.8)]">
               <YouTube
-                videoId={playerData.lectureUrl.split("/").pop()}
-                iframeClassName="w-full aspect-video"
-              />
+  videoId={getYouTubeId(playerData.lectureUrl)}
+  iframeClassName="w-full aspect-video"
+/>
+
 
               <div className="flex justify-between items-center mt-2 px-3 py-2 text-sm md:text-base">
                 <p className="text-gray-100">
@@ -277,3 +288,5 @@ const Player = () => {
 };
 
 export default Player;
+
+

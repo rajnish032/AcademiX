@@ -1,73 +1,203 @@
-import React, { useContext, useEffect, useState } from 'react'
+// import React, { useContext, useEffect, useState } from 'react'
+// import { AppContext } from '../../context/AppContext';
+// import Loading from '../../components/student/Loading';
+// import { toast } from 'react-toastify';
+// import axios from 'axios';
+
+// const MyCourses = () => {
+
+//   const { currency, allCourses, backendUrl, isEducator, getToken} = useContext(AppContext);
+
+//   const [ courses, setCourses] = useState(null)
+
+//   const fetchEducatorCourses = async () => {
+//   try {
+//     const token = await getToken();
+//     const { data } = await axios.get(
+//       backendUrl + "/api/educator/courses",
+//       { headers: { Authorization: `Bearer ${token}` } }
+//     );
+//     setCourses(data.courses);
+//     if (!data.success) {
+//       toast.error(data.message);
+//     }
+//   } catch (error) {
+//     toast.error(error.message);
+//   }
+// };
+
+
+//   useEffect(()=> {
+//     if(isEducator){
+//       fetchEducatorCourses()
+//     }
+    
+//   },[isEducator])
+//   return courses ? (
+//     <div className="min-h-screen flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0 w-full">
+//       <div className="w-full">
+//         <h2 className="pb-4 text-lg font-semibold text-slate-800 dark:text-slate-100">
+//           My Courses
+//         </h2>
+
+//         <div
+//           className="
+//             flex flex-col items-center max-w-5xl w-full overflow-hidden rounded-xl
+//             border bg-white/90 border-slate-200
+//             dark:bg-slate-900/80 dark:border-slate-700
+//             shadow-md shadow-slate-900/10
+//           "
+//         >
+//           <table className="md:table-auto table-fixed w-full overflow-hidden">
+//             <thead
+//               className="
+//                 text-slate-900 dark:text-slate-100 text-sm text-left
+//                 border-b border-slate-200 dark:border-slate-700
+//                 bg-slate-50/80 dark:bg-slate-900/90
+//               "
+//             >
+//               <tr>
+//                 <th className="px-4 py-3 font-semibold truncate">All Courses</th>
+//                 <th className="px-4 py-3 font-semibold truncate">Earnings</th>
+//                 <th className="px-4 py-3 font-semibold truncate">Students</th>
+//                 <th className="px-4 py-3 font-semibold truncate">
+//                   Published On
+//                 </th>
+//               </tr>
+//             </thead>
+
+//             <tbody className="text-sm text-slate-600 dark:text-slate-300">
+//               {courses.map((course) => {
+//                 const earnings = Math.floor(
+//                   course.enrolledStudents.length *
+//                     (course.coursePrice -
+//                       (course.discount * course.coursePrice) / 100)
+//                 );
+
+//                 return (
+//                   <tr
+//                     key={course._id}
+//                     className="
+//                       border-b border-slate-200 dark:border-slate-800
+//                       hover:bg-slate-50/80 dark:hover:bg-slate-800/70
+//                       transition-colors
+//                     "
+//                   >
+//                     <td className="md:px-4 pl-2 md:pl-4 py-3">
+//                       <div className="flex items-center space-x-3 truncate">
+//                         <img
+//                           src={course.courseThumbnail}
+//                           alt="Course"
+//                           className="w-16 h-16 rounded-md object-cover border border-slate-200 dark:border-slate-700"
+//                         />
+//                         <span className="truncate hidden md:block">
+//                           {course.courseTitle}
+//                         </span>
+//                       </div>
+//                     </td>
+
+//                     <td className="px-4 py-3">
+//                       {currency}
+//                       {earnings}
+//                     </td>
+
+//                     <td className="px-4 py-3">
+//                       {course.enrolledStudents.length}
+//                     </td>
+
+//                     <td className="px-4 py-3">
+//                       {new Date(course.createdAt).toLocaleDateString()}
+//                     </td>
+//                   </tr>
+//                 );
+//               })}
+
+//               {courses.length === 0 && (
+//                 <tr>
+//                   <td
+//                     colSpan={4}
+//                     className="px-4 py-6 text-center text-slate-500 dark:text-slate-400"
+//                   >
+//                     You haven&apos;t published any courses yet.
+//                   </td>
+//                 </tr>
+//               )}
+//             </tbody>
+//           </table>
+//         </div>
+//       </div>
+//     </div>
+//   ) : (
+//     <Loading />
+//   );
+// }
+
+// export default MyCourses;
+
+import React, { useContext, useEffect, useState } from 'react';
 import { AppContext } from '../../context/AppContext';
 import Loading from '../../components/student/Loading';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 
 const MyCourses = () => {
-
-  const { currency, allCourses, backendUrl, isEducator, getToken} = useContext(AppContext);
-
-  const [ courses, setCourses] = useState(null)
+  const { currency, backendUrl, isEducator, getToken } = useContext(AppContext);
+  const [courses, setCourses] = useState(null);
 
   const fetchEducatorCourses = async () => {
-  try {
-    const token = await getToken();
-    const { data } = await axios.get(
-      backendUrl + "/api/educator/courses",
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    setCourses(data.courses);
-    if (!data.success) {
-      toast.error(data.message);
+    try {
+      const token = await getToken();
+      const { data } = await axios.get(backendUrl + '/api/educator/courses', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCourses(data.courses);
+      if (!data.success) {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
     }
-  } catch (error) {
-    toast.error(error.message);
-  }
-};
+  };
 
-
-  useEffect(()=> {
-    if(isEducator){
-      fetchEducatorCourses()
+  useEffect(() => {
+    if (isEducator) {
+      fetchEducatorCourses();
     }
-    
-  },[isEducator])
+  }, [isEducator]);
+
   return courses ? (
-    <div className="min-h-screen flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0 w-full">
-      <div className="w-full">
-        <h2 className="pb-4 text-lg font-semibold text-slate-800 dark:text-slate-100">
-          My Courses
-        </h2>
+    <div className="relative h-full overflow-y-auto flex flex-col items-start gap-8 p-4 md:p-8 w-full text-slate-100">
+      {/* glow */}
+      <div className="pointer-events-none absolute -top-16 left-1/2 -translate-x-1/2 h-40 w-72 rounded-full bg-cyan-500/25 blur-3xl" />
+
+      <div className="w-full relative z-10">
+        <h2 className="pb-4 text-lg font-semibold text-slate-100">My Courses</h2>
 
         <div
           className="
             flex flex-col items-center max-w-5xl w-full overflow-hidden rounded-xl
-            border bg-white/90 border-slate-200
-            dark:bg-slate-900/80 dark:border-slate-700
-            shadow-md shadow-slate-900/10
+            border bg-slate-900/85 border-slate-800
+            shadow-xl shadow-black/50
           "
         >
           <table className="md:table-auto table-fixed w-full overflow-hidden">
             <thead
               className="
-                text-slate-900 dark:text-slate-100 text-sm text-left
-                border-b border-slate-200 dark:border-slate-700
-                bg-slate-50/80 dark:bg-slate-900/90
+                text-slate-100 text-sm text-left
+                border-b border-slate-800
+                bg-slate-950/70
               "
             >
               <tr>
                 <th className="px-4 py-3 font-semibold truncate">All Courses</th>
                 <th className="px-4 py-3 font-semibold truncate">Earnings</th>
                 <th className="px-4 py-3 font-semibold truncate">Students</th>
-                <th className="px-4 py-3 font-semibold truncate">
-                  Published On
-                </th>
+                <th className="px-4 py-3 font-semibold truncate">Published On</th>
               </tr>
             </thead>
 
-            <tbody className="text-sm text-slate-600 dark:text-slate-300">
-              {courses.map((course) => {
+            <tbody className="text-sm text-slate-300">
+              {courses.map(course => {
                 const earnings = Math.floor(
                   course.enrolledStudents.length *
                     (course.coursePrice -
@@ -78,8 +208,8 @@ const MyCourses = () => {
                   <tr
                     key={course._id}
                     className="
-                      border-b border-slate-200 dark:border-slate-800
-                      hover:bg-slate-50/80 dark:hover:bg-slate-800/70
+                      border-b border-slate-800
+                      hover:bg-slate-800/70
                       transition-colors
                     "
                   >
@@ -88,7 +218,7 @@ const MyCourses = () => {
                         <img
                           src={course.courseThumbnail}
                           alt="Course"
-                          className="w-16 h-16 rounded-md object-cover border border-slate-200 dark:border-slate-700"
+                          className="w-16 h-16 rounded-md object-cover border border-slate-700"
                         />
                         <span className="truncate hidden md:block">
                           {course.courseTitle}
@@ -116,7 +246,7 @@ const MyCourses = () => {
                 <tr>
                   <td
                     colSpan={4}
-                    className="px-4 py-6 text-center text-slate-500 dark:text-slate-400"
+                    className="px-4 py-6 text-center text-slate-500"
                   >
                     You haven&apos;t published any courses yet.
                   </td>
@@ -130,6 +260,6 @@ const MyCourses = () => {
   ) : (
     <Loading />
   );
-}
+};
 
 export default MyCourses;
